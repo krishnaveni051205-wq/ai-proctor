@@ -1,0 +1,13 @@
+# Environments
+tf_env/
+my_deepface_env/
+anaconda3/
+venv/
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
