@@ -1,8 +1,11 @@
 from vision_module import VisionModule
+from audio_module import AudioModule
 import cv2
 import numpy as np
 
 vm = VisionModule()
+am=AudioModule(threshold=0.05)
+am.start_stream()
 cap = cv2.VideoCapture(0)
 
 while cap.isOpened():
@@ -11,6 +14,9 @@ while cap.isOpened():
     
     # 1. Get the data from our new Module
     data = vm.process_frame(frame)
+    if am.check_noise():
+        cv2.putText(frame,"ALERT: NOISE DETECTED!",(50,450),
+        cv2.FONT_HERSHEY_SIMPLEX,1,(0,0,255),3)
     
     # 2. DRAW OBJECTS (Phones, Books, etc.)
     for obj in data["objects"]:
@@ -41,6 +47,6 @@ while cap.isOpened():
     
     if cv2.waitKey(1) & 0xFF == ord('q'): 
         break
-
+am.stop_stream()
 cap.release()
 cv2.destroyAllWindows()
