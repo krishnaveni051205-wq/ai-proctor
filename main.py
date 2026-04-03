@@ -1,11 +1,13 @@
 from vision_module import VisionModule
 from audio_module import AudioModule
 import cv2
-import numpy as np
+import numpy as np 
+from logger_module import LoggerModule
 
 vm = VisionModule()
 am=AudioModule(threshold=0.05)
 am.start_stream()
+logger = LoggerModule()
 cap = cv2.VideoCapture(0)
 
 while cap.isOpened():
@@ -14,9 +16,9 @@ while cap.isOpened():
     
     # 1. Get the data from our new Module
     data = vm.process_frame(frame)
-    if am.check_noise():
-        cv2.putText(frame,"ALERT: NOISE DETECTED!",(50,450),
-        cv2.FONT_HERSHEY_SIMPLEX,1,(0,0,255),3)
+    if am.is_suspicious_noise():
+        logger.log_event("AUDIO_VIOLATION", f"Volume: {am.current_volume:.4f}")
+    
     
     # 2. DRAW OBJECTS (Phones, Books, etc.)
     for obj in data["objects"]:
@@ -47,6 +49,16 @@ while cap.isOpened():
     
     if cv2.waitKey(1) & 0xFF == ord('q'): 
         break
-am.stop_stream()
+    bar_width = int(am.current_volume * 1000)
+cv2.rectangle(frame, (50, 400), (50 + bar_width, 420), (0, 255, 255), -1)
+cv2.putText(frame, "Mic Level", (50, 390), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+
+# 3. Display the Warning Count
+cv2.putText(frame, f"Audio Warnings: {am.alert_count}", (400, 50), 
+            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 165, 255), 2)
+
+if am.alert_count > 5:
+    cv2.putText(frame, "CRITICAL: PERSISTENT NOISE", (150, 250), 
+                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
 cap.release()
 cv2.destroyAllWindows()
