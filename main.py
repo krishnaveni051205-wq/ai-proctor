@@ -5,7 +5,7 @@ import numpy as np
 from logger_module import LoggerModule
 
 vm = VisionModule()
-am=AudioModule(threshold=0.05)
+am=AudioModule()
 am.start_stream()
 logger = LoggerModule()
 cap = cv2.VideoCapture(0)
@@ -16,9 +16,8 @@ while cap.isOpened():
     
     # 1. Get the data from our new Module
     data = vm.process_frame(frame)
-    if am.is_suspicious_noise():
-        logger.log_event("AUDIO_VIOLATION", f"Volume: {am.current_volume:.4f}")
-    
+    if am.is_speech():
+        cv2.putText(frame,"SPEECH DETECTED!",(20,430),cv2.FONT_HERSHEY_SIMPLEX,0.7,(0,0,255),2) 
     
     # 2. DRAW OBJECTS (Phones, Books, etc.)
     for obj in data["objects"]:
