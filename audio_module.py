@@ -8,6 +8,7 @@ class AudioModule:
         self.recognizer.energy_threshold = 300 
         self.recognizer.dynamic_energy_threshold = True
         self._is_speech_detected = False # Internal variable
+        self.last_transcript=""
         self.alert_count = 0
         self.running = True
         self.current_volume=0
@@ -21,11 +22,20 @@ class AudioModule:
             while self.running:
                 try:
                     # Listen for a very short 0.5s burst
-                    audio = self.recognizer.listen(source, timeout=0.1, phrase_time_limit=0.5)
-                    self._is_speech_detected = True
-                    self.alert_count += 1
-                    # Hold the 'True' status for a moment so the UI can catch it
-                    time.sleep(0.5) 
+                    audio = self.recognizer.listen(source, timeout=0.5, phrase_time_limit=2.0)
+                    self.current_volume=self.recognizer.energy_threshold/1000.0
+                    try:
+                        text=self.recognizer.recognize_google(audio)
+                        self.last_transcript=text.lower()
+                        self._is_speech_detected = True
+                        print(f"Heard: {self.last_transcript}")
+                        triggers=["google","answer","search","help","formula","what is","explain"]
+                        if any(word in self.last_transcript for word in triggers):
+                            self.alert_count+=5
+                        time.sleep(0.8)
+                        self._is_speech_detected=False
+                    except sr.UnknownValueError:
+                        self.last_transcript="[Unlcear Speech]"
                 except (sr.WaitTimeoutError, sr.UnknownValueError):
                     self._is_speech_detected = False
 
@@ -39,3 +49,5 @@ class AudioModule:
 
     def stop_stream(self):
         self.running = False
+    def get_transcript(self):
+        return self.last_transcript

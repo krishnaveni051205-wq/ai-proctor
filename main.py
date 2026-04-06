@@ -17,14 +17,15 @@ while cap.isOpened():
     # 1. Get the data from our new Module
     data = vm.process_frame(frame)
     if am.is_speech():
-        cv2.putText(frame,"SPEECH DETECTED!",(20,430),cv2.FONT_HERSHEY_SIMPLEX,0.7,(0,0,255),2) 
-    
-    # 2. DRAW OBJECTS (Phones, Books, etc.)
+        transcript=am.get_transcript()
+        if transcript and transcript != "[Unclear Speech]":
+            cv2.putText(frame,f"HEARD:{transcript}",(20,460),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,0),1)
+            logger.log_event("SPEECH_TRANSCRIPT", transcript)
+     # 2. DRAW OBJECTS (Phones, Books, etc.)
     for obj in data["objects"]:
         cv2.putText(frame, f"ALERT: {obj} detected!", (50, 50), 
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-
-    # 3. DRAW FACES & ALERTS
+     # 3. DRAW FACES & ALERTS
     for face in data["faces"]:
         x, y, w, h = face["box"]
         pitch, yaw, roll = face["pose"]
@@ -42,22 +43,19 @@ while cap.isOpened():
         else:
             cv2.putText(frame, "STATUS: OK", (x, y-10), 
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+    bar_width = int(am.current_volume * 1000)
+    cv2.rectangle(frame, (50, 400), (50 + bar_width, 420), (0, 255, 255), -1)
+    cv2.putText(frame, "Mic Level", (50, 390), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+    cv2.putText(frame, f"Audio Warnings: {am.alert_count}", (400, 50), 
+                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 165, 255), 2)
+    if am.alert_count > 10:
+        cv2.putText(frame, "CRITICAL: PERSISTENT NOISE", (150, 250), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
 
-    # 4. Display the frame
     cv2.imshow("Master Proctor Dashboard", frame)
     
     if cv2.waitKey(1) & 0xFF == ord('q'): 
         break
-    bar_width = int(am.current_volume * 1000)
-cv2.rectangle(frame, (50, 400), (50 + bar_width, 420), (0, 255, 255), -1)
-cv2.putText(frame, "Mic Level", (50, 390), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
-# 3. Display the Warning Count
-cv2.putText(frame, f"Audio Warnings: {am.alert_count}", (400, 50), 
-            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 165, 255), 2)
-
-if am.alert_count > 5:
-    cv2.putText(frame, "CRITICAL: PERSISTENT NOISE", (150, 250), 
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
 cap.release()
 cv2.destroyAllWindows()
