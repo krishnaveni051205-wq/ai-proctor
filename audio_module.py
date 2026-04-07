@@ -29,8 +29,11 @@ class AudioModule:
                         self.last_transcript=text.lower()
                         self._is_speech_detected = True
                         print(f"Heard: {self.last_transcript}")
-                        triggers=["google","answer","search","help","formula","what is","explain"]
-                        if any(word in self.last_transcript for word in triggers):
+                        triggers=["siri", "alexa", "google", "cortana", "chatgpt", "search", "browser",
+                            "formula", "definition", "example", "solve", "derive", "equation", "theorem",
+                            "tell me", "what is", "show me", "whisper", "speak up", "repeat",
+                            "matrix", "algorithm", "integral", "database", "complexity"]
+                        if any(word.lower() in self.last_transcript for word in triggers):
                             self.alert_count+=5
                         time.sleep(0.8)
                         self._is_speech_detected=False
