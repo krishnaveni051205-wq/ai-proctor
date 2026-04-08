@@ -21,6 +21,10 @@ while cap.isOpened():
         if transcript and transcript != "[Unclear Speech]":
             cv2.putText(frame,f"HEARD:{transcript}",(20,460),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,0),1)
             logger.log_event("SPEECH_TRANSCRIPT", transcript)
+    liveness_status="LIVE" if am.is_live else "RECORDING DETECTED"
+    liveness_color=(0,255,0) if am.is_live else (0,0,255)
+    cv2.putText(frame,f"Source:{liveness_status}",(20,100),
+    cv2.FONT_HERSHEY_SIMPLEX,0.5,liveness_color,2)
      # 2. DRAW OBJECTS (Phones, Books, etc.)
     for obj in data["objects"]:
         cv2.putText(frame, f"ALERT: {obj} detected!", (50, 50), 
@@ -43,7 +47,7 @@ while cap.isOpened():
         else:
             cv2.putText(frame, "STATUS: OK", (x, y-10), 
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-    bar_width = int(am.current_volume * 1000)
+    bar_width = int(min(am.current_volume * 200,200))
     cv2.rectangle(frame, (50, 400), (50 + bar_width, 420), (0, 255, 255), -1)
     cv2.putText(frame, "Mic Level", (50, 390), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
     cv2.putText(frame, f"Audio Warnings: {am.alert_count}", (400, 50), 
