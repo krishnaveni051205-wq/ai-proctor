@@ -54,7 +54,8 @@ class AudioModule:
                         triggers = ["siri", "alexa", "google", "cortana", "chatgpt", "search", "browser",
                                     "formula", "definition", "example", "solve", "derive", "equation", "theorem",
                                     "tell me", "what is", "show me", "whisper", "speak up", "repeat",
-                                    "matrix", "algorithm", "integral", "database", "complexity"]
+                                    "matrix", "algorithm", "integral", "database", "complexity",
+                                    "read it", "solve this", "what does it say", "check the book","probability","probability", "derivative", "limit", "summation", "coefficient"]
                         
                         # UPDATED: Loop through and count every trigger found
                         for word in triggers:
