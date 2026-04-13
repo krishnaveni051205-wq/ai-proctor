@@ -25,6 +25,17 @@ while cap.isOpened():
     liveness_color=(0,255,0) if am.is_live else (0,0,255)
     cv2.putText(frame,f"Source:{liveness_status}",(20,100),
     cv2.FONT_HERSHEY_SIMPLEX,0.5,liveness_color,2)
+    #mouth aspect ratio to check if the user is speaking or someone behind him is
+    is_mouth_open=data.get("mouth_open",False)
+    is_speech_active=am.is_speech()
+    if is_speech_active and not is_mouth_open:
+        cv2.putText(frame,"ALERT: EXTERNAL VOICE DETECTED!",(150,300),
+        cv2.FONT_HERSHEY_SIMPLEX,1,(0,0,255),3)
+        logger.log_event("SPOOF ATTEMPT ","Speech detected with cloed mouth")
+        am.alert_count+=2
+    elif is_speech_active and is_mouth_open:
+        cv2.putText(frame,"User Speaking..",(20,300),
+        cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,255,0),1)
      # 2. DRAW OBJECTS (Phones, Books, etc.)
     for obj in data["objects"]:
         cv2.putText(frame, f"ALERT: {obj} detected!", (50, 50), 

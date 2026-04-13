@@ -57,3 +57,8 @@ class VisionModule:
                 results["faces"].append({"box": (x,y,w,h), "pose": (pitch, yaw, roll)})
         
         return results
+    def calculate_mar(self,landmarks):
+        top_lip=landmarks[13]
+        bottom_lip=landmarks[14]
+        distance=abs(top_lip.y-bottom_lip.y)
+        return distance
