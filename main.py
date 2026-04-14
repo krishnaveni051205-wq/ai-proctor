@@ -3,13 +3,19 @@ from audio_module import AudioModule
 import cv2
 import numpy as np 
 from logger_module import LoggerModule
-
+import os
+import time
+if not os.path.exists("evidence"):
+    os.makedirs("evidence")
 vm = VisionModule()
 am=AudioModule()
 am.start_stream()
 logger = LoggerModule()
 cap = cv2.VideoCapture(0)
-
+is_recording=False
+record_timer=0
+video_out=None
+last_alert_count=0
 while cap.isOpened():
     ret, frame = cap.read()
     if not ret: break
@@ -36,6 +42,27 @@ while cap.isOpened():
     elif is_speech_active and is_mouth_open:
         cv2.putText(frame,"User Speaking..",(20,300),
         cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,255,0),1)
+    if am.alert_count> last_alert_count and not is_recording:
+        timestamp=time.strftime("%Y%m%d-%H%M%S")
+        cv2.imwrite(f"evidence/violation_{timestamp}.jpg",frame)
+        fourcc=cv2.VideoWriter_fourcc(*'MJPG')
+        frame_width=int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        frame_height=int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        video_out=cv2.VideoWriter(f"evidence/clip_{timestamp}.avi",fourcc,20.0,(frame_width,frame_height))
+        is_recording=True
+        record_timer=60
+        print("Evidence capture started:{timestamp}")
+    if is_recording:
+        video_out.write(frame)
+        record_timer-=1
+        #Visual indicator that recording is happening
+        cv2.circle(frame,(600,30),10,(0,0,255),-1)
+        cv2.putText(frame,"REC",(560,35),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,0,255),2)
+        if record_timer <=0:
+            is_recording=False
+            video_out.release()
+            print("Evidence Capture Saved")
+    last_alert_count=am.alert_count
      # 2. DRAW OBJECTS (Phones, Books, etc.)
     for obj in data["objects"]:
         cv2.putText(frame, f"ALERT: {obj} detected!", (50, 50), 
